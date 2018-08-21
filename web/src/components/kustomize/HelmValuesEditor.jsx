@@ -2,13 +2,10 @@ import React from "react";
 import autoBind from "react-autobind";
 import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
-import AceEditor from "react-ace";
+import MonacoEditor from "react-monaco-editor";
 import ErrorBoundary from "../../ErrorBoundary";
 import get from "lodash/get";
 import find from "lodash/find";
-
-import "../../../node_modules/brace/mode/yaml";
-import "../../../node_modules/brace/theme/chrome";
 
 import "../../scss/components/kustomize/HelmValuesEditor.scss";
 
@@ -36,6 +33,10 @@ export default class HelmValuesEditor extends React.Component {
         specValue: this.props.getStep.values
       })
     }
+  }
+
+  componentDidUpdate() {
+    // console.log(new MonacoEditor.Range(1,1,2,1))
   }
 
   getLinterErrors(specContents) {
@@ -136,7 +137,6 @@ export default class HelmValuesEditor extends React.Component {
 
   render() {
     const {
-      readOnly,
       specValue,
       initialSpecValue,
       saving,
@@ -160,25 +160,19 @@ export default class HelmValuesEditor extends React.Component {
             </p>
             <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
             <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
-              <div className="flex1 flex-column u-width--half">
-                <AceEditor
-                  ref={(editor) => { this.helmEditor = editor }}
-                  mode="yaml"
-                  theme="chrome"
-                  className={`${readOnly ? "disabled-ace-editor ace-chrome" : ""}`}
-                  readOnly={readOnly}
+              <div className="flex1 flex-column u-width--half u-overflow--hidden">
+                <MonacoEditor
+                  ref={(editor) => { this.monacoEditor = editor}}
+                  language="yaml"
                   onChange={this.onSpecChange}
-                  markers={this.state.specErrorMarkers}
                   value={specValue}
                   height="100%"
                   width="100%"
-                  editorProps={{
-                    $blockScrolling: Infinity,
-                    useSoftTabs: true,
-                    tabSize: 2,
-                  }}
-                  setOptions={{
-                    scrollPastEnd: true
+                  options={{
+                    minimap: {
+                      enabled: false
+                    },
+                    scrollBeyondLastLine: false,
                   }}
                 />
               </div>
