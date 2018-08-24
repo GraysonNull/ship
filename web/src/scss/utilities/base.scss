@@ -86,22 +86,12 @@ input:-webkit-autofill {
   fill: $loader-color
 }
 
-.AceEditor--wrapper {
+.CodeEditor--wrapper {
   position: relative;
   box-sizing: border-box;
   
   .error-highlight {
     background:#FBEDEB;
-    position: absolute;
-  }
-
-  .disabled-ace-editor {
-    opacity: .5;
-  }
-
-  .ace_search {
-    left: 0;
-    right: auto;
   }
 }
 

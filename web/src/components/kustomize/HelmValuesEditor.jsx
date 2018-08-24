@@ -2,7 +2,8 @@ import React from "react";
 import autoBind from "react-autobind";
 import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
-import MonacoEditor from "react-monaco-editor";
+// import MonacoEditor from "react-monaco-editor";
+import * as monaco from "monaco-editor";
 import ErrorBoundary from "../../ErrorBoundary";
 import get from "lodash/get";
 import find from "lodash/find";
@@ -16,6 +17,7 @@ export default class HelmValuesEditor extends React.Component {
       readOnly: false,
       showConsole: false,
       specErrors: [],
+      specErrorMarkers: [],
       specValue: "",
       initialSpecValue: "",
       helmLintErrors: [],
@@ -27,6 +29,23 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   componentDidMount() {
+    const newEditor = monaco.editor.create(document.getElementById("monaco-mount"), {
+      value: "",
+      language: "yaml",
+      minimap: {
+        enabled: false
+      },
+      scrollBeyondLastLine: false,
+    });
+    newEditor.onKeyUp(() => {
+      this.onSpecChange(newEditor.getValue());
+    });
+    // newEditor.getModel().onDidChangeDecorations(() => {
+    //   newEditor.render();
+    // })
+    this.setState({
+      editor: newEditor
+    })
     if(this.props.getStep.values) {
       this.setState({
         initialSpecValue: this.props.getStep.values,
@@ -35,8 +54,19 @@ export default class HelmValuesEditor extends React.Component {
     }
   }
 
-  componentDidUpdate() {
-    // console.log(new MonacoEditor.Range(1,1,2,1))
+  editorDidMount(editor) {
+    editor.focus();
+  }
+
+  componentDidUpdate(lastProps, lastState) {
+    if (this.state.specValue !== lastState.specValue && this.state.specValue !== "") {
+      this.state.editor.getModel().setValue(this.state.specValue);
+      // this.getLinterErrors();
+    }
+  }
+
+  setMarkers() {
+    this.state.editor.deltaDecorations([], this.state.specErrorMarkers);
   }
 
   getLinterErrors(specContents) {
@@ -48,12 +78,19 @@ export default class HelmValuesEditor extends React.Component {
       if (error.positions) {
         for (let position of error.positions) {
           let line = get(position, "start.line");
+          let column = get(position, "start.column");
+          const range = new monaco.Range(line, column, line + 1, column);
           if (line) {
             markers.push({
-              startRow: line,
-              endRow: line + 1,
-              className: "error-highlight",
-              type: "background"
+              range,
+              options: {
+                isWholeLine: true,
+                className: "error-highlight",
+                hoverMessage: {
+                  value: error.message,
+                  isTrusted: true
+                }
+              }
             })
           }
         }
@@ -63,14 +100,15 @@ export default class HelmValuesEditor extends React.Component {
       specErrors: errors,
       specErrorMarkers: markers,
     });
+    this.setMarkers();
   }
 
-  onSpecChange(value) {
+  onSpecChange(newValue) {
     const { initialSpecValue } = this.state;
-    this.getLinterErrors(value);
+    this.getLinterErrors(newValue);
     this.setState({
-      specValue: value,
-      unsavedChanges: !(initialSpecValue === value)
+      specValue: newValue,
+      unsavedChanges: !(initialSpecValue === newValue)
     });
   }
 
@@ -159,22 +197,9 @@ export default class HelmValuesEditor extends React.Component {
               <span className="u-color--tuna u-fontWeight--bold">values.yaml</span>
             </p>
             <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
-            <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
+            <div className="CodeEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
               <div className="flex1 flex-column u-width--half u-overflow--hidden">
-                <MonacoEditor
-                  ref={(editor) => { this.monacoEditor = editor}}
-                  language="yaml"
-                  onChange={this.onSpecChange}
-                  value={specValue}
-                  height="100%"
-                  width="100%"
-                  options={{
-                    minimap: {
-                      enabled: false
-                    },
-                    scrollBeyondLastLine: false,
-                  }}
-                />
+                <div id="monaco-mount" style={{height: "100%", width: "100%"}}></div>
               </div>
               <div className={`flex-auto flex-column console-wrapper u-width--third ${!this.state.showConsole ? "visible" : ""}`}>
                 <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />

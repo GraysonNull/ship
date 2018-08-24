@@ -266,7 +266,7 @@ export default class KustomizeOverlay extends React.Component {
                             <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
                           </div>
                           { selectedFile !== "" ?
-                            <div className="flex1 file-contents-wrapper AceEditor--wrapper">
+                            <div className="flex1 file-contents-wrapper CodeEditor--wrapper">
                               {!showOverlay &&
                               <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
                                 <span className="icon clickable u-overlayCreateIcon"></span>
@@ -296,7 +296,7 @@ export default class KustomizeOverlay extends React.Component {
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
-                    <div className="flex1 AceEditor--wrapper">
+                    <div className="flex1 CodeEditor--wrapper">
                       {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span>}
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
